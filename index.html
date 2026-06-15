@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Agent - Smart Categorizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans text-gray-950 min-h-screen flex flex-col">
+
+    <header class="bg-indigo-600 text-white shadow-md py-6 px-4">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-newspaper text-3xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">AI News Agent</h1>
+                    <p class="text-sm text-indigo-200">Smart News Aggregator & Categorizer</p>
+                </div>
+            </div>
+            <p class="text-sm bg-indigo-700 px-3 py-1.5 rounded-full border border-indigo-500">
+                <i class="fa-solid fa-robot mr-1.5"></i> Powered by AI
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+        
+        <section class="mb-10 text-center">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-filter text-indigo-500"></i> Select News Category
+            </h2>
+            <div class="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+                <button class="px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer">
+                    All News
+                </button>
+                <button class="px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer">
+                    ⚽ Sports
+                </button>
+                <button class="px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer">
+                    😊 Good News
+                </button>
+                <button class="px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer">
+                    🏛️ Political
+                </button>
+                <button class="px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer">
+                    😟 Bad News
+                </button>
+                <button class="px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer">
+                    📈 Economy
+                </button>
+            </div>
+        </section>
+
+        <hr class="border-gray-200 mb-8">
+
+        <section>
+            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+                    <div class="p-5 flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                Good News
+                            </span>
+                            <span class="text-xs text-gray-400">10 mins ago</span>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-lg mb-2 line-clamp-2">
+                            Local Volunteers Plant 10,000 Trees in a Single Weekend
+                        </h3>
+                        <p class="text-gray-600 text-sm line-clamp-3">
+                            A massive community drive successfully restored the local green cover. Over 500 residents participated in the mega afforestation project.
+                        </p>
+                    </div>
+                    <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 mt-auto flex justify-between items-center">
+                        <span class="text-xs font-medium text-gray-500"><i class="fa-solid fa-user mr-1"></i> Tech Reporter</span>
+                        <a href="#" class="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1">
+                            Read More <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+                    <div class="p-5 flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                Political
+                            </span>
+                            <span class="text-xs text-gray-400">1 hour ago</span>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-lg mb-2 line-clamp-2">
+                            New Policy Sparks Debate on Urban Development and Zoning Laws
+                        </h3>
+                        <p class="text-gray-600 text-sm line-clamp-3">
+                            The newly introduced government bill aims to restructure city layouts, leading to mixed reactions among town planners and local citizens.
+                        </p>
+                    </div>
+                    <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 mt-auto flex justify-between items-center">
+                        <span class="text-xs font-medium text-gray-500"><i class="fa-solid fa-user mr-1"></i> Global Post</span>
+                        <a href="#" class="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1">
+                            Read More <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 text-center py-4 border-t border-gray-800 text-xs mt-10">
+        &copy; 2026 AI News Agent. Internship Project for Sathana L.
+    </footer>
+
+</body>
+</html>
