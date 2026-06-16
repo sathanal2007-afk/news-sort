@@ -117,34 +117,58 @@
 
         // Robust Local AI Classifier Simulation Array (Dataset Mapping logic)
         const mockNews = [
-            { title: "Local Tech Volunteers Plant 10,000 Trees in a Single Weekend for Green Cover", description: "A massive community drive successfully restored the local green cover. Over 500 residents participated in the mega afforestation project.", category: "good news", source: { name: "Green Earth" }, publishedAt: new Date() },
-            { title: "Global Research Association Announces Breakthrough in Clean Energy Fusion Systems", description: "Researchers have achieved a net energy gain in a fusion reactor, opening doors to limitless, zero-carbon electricity for the future.", category: "good news", source: { name: "Science Daily" }, publishedAt: new Date() },
-            { title: "Real Madrid Clinches Thrilling Victory in Football Champions League Final Match", description: "An extraordinary 90th-minute header sealed the championship title in an adrenaline-pumping match that kept fans on edge.", category: "sports", source: { name: "Sky Sports" }, publishedAt: new Date() },
-            { title: "New Parliament Housing Policy Sparks Intense Debate on Urban Community Reforms", description: "The newly introduced housing zoning bill aims to restructure city layouts, causing mixed reactions among town planners and opposition members.", category: "politics", source: { name: "National Post" }, publishedAt: new Date() },
-            { title: "Stock Markets Slide Amid Unexpected Sudden Surge in Global Crude Oil Inflation Pricing", description: "Major indices hit a three-month low today as supply chain worries and rising energy pricing pressure tech and manufacturing stocks.", category: "business", source: { name: "Bloomberg" }, publishedAt: new Date() },
-            { title: "Severe Coastal Storm Forces Immediate Evacuations in Several Low-Lying Districts", description: "Heavy downpours combined with flash tides have breached local embankments, causing widespread structural flooding and transport blocks.", category: "bad news", source: { name: "Weather Alert" }, publishedAt: new Date() }
-        ];
+    { 
+        title: "Local Tech Volunteers Plant 10,000 Trees...", 
+        description: "A massive community drive...", 
+        category: "good news", 
+        source: { name: "Green Earth" }, 
+        publishedAt: new Date(),
+        url: "https://www.nature.com" // <-- Add a real URL here!
+    },
+    { 
+        title: "Global Research Association Announces Breakthrough...", 
+        description: "Researchers have achieved...", 
+        category: "good news", 
+        source: { name: "Science Daily" }, 
+        publishedAt: new Date(),
+        url: "https://www.sciencedaily.com" // <-- Add a real URL here!
+    }
+    // ... do the same for the rest of your sample news cards
+];
 
         // Core AI Semantic Model Rules Map (Exactly like what our Python CSV dataset does!)
+// Core AI Semantic Model Rules Map - EXPANDED KEYWORDS FOR LIVE NEWS
         function classifyTextWithAI(title, desc) {
             const combinedText = `${title} ${desc}`.toLowerCase();
             
-            // Positives / Good News tokens weights matching
-            const goodKeywords = ['breakthrough', 'victory', 'won', 'success', 'save', 'plant', 'restore', 'clean energy', 'achievement', 'pride', 'growth', 'boost'];
-            // Negatives / Bad News tokens weights matching
-            const badKeywords = ['slide', 'storm', 'flood', 'destroy', 'layoff', 'crisis', 'crash', 'dead', 'accident', 'damage', 'loss', 'evacuation', 'strike'];
+            // Added more common words so it catches real-time live news easily!
+            const goodKeywords = [
+                'breakthrough', 'victory', 'won', 'success', 'save', 'plant', 'restore', 
+                'clean energy', 'achievement', 'pride', 'growth', 'boost', 'launch', 
+                'innovate', 'science', 'health', 'cure', 'discover', 'green', 'benefit', 
+                'help', 'support', 'sign', 'agree', 'partnership', 'future', 'smart'
+            ];
+            
+            const badKeywords = [
+                'slide', 'storm', 'flood', 'destroy', 'layoff', 'crisis', 'crash', 
+                'dead', 'accident', 'damage', 'loss', 'evacuation', 'strike', 'warn', 
+                'drop', 'fall', 'hurt', 'court', 'sue', 'fire', 'protest', 'delay', 
+                'decline', 'risk', 'fail', 'accident', 'issue', 'attack', 'banned'
+            ];
             
             let goodScore = 0;
             let badScore = 0;
 
-            goodKeywords.forEach(word => { if(combinedText.includes(word)) goodScore += 1.5; });
-            badKeywords.forEach(word => { if(combinedText.includes(word)) badScore += 1.5; });
+            // Checking if the live article contains any of our words
+            goodKeywords.forEach(word => { if(combinedText.includes(word)) goodScore += 1.0; });
+            badKeywords.forEach(word => { if(combinedText.includes(word)) badScore += 1.0; });
 
             if (goodScore > badScore && goodScore > 0) return 'good news';
             if (badScore > goodScore && badScore > 0) return 'bad news';
             return 'neutral';
         }
 
+       // 2. FIXED FUNCTION: Fetches and displays the exact category you choose
         async function fetchNews(category = 'general') {
             newsContainer.innerHTML = `
                 <div class="col-span-full text-center py-10 text-gray-500">
@@ -153,14 +177,20 @@
                 </div>
             `;
 
-            // Standard URL Routing parameters
-            let gnewsCategory = category;
-            if(category === 'good news' || category === 'bad news') {
-                gnewsCategory = 'general'; // Fetch latest general feeds to classify them dynamically
+            // Set up the correct GNews API category based on your click
+            let gnewsCategory = 'general'; 
+            
+            if (category === 'sports') {
+                gnewsCategory = 'sports';
             } else if (category === 'politics') {
-                gnewsCategory = 'nation';
+                gnewsCategory = 'nation'; // GNews uses 'nation' for politics/national news
+            } else if (category === 'business') {
+                gnewsCategory = 'business'; // For Economy
+            } else if (category === 'good news' || category === 'bad news') {
+                gnewsCategory = 'general'; // Fetch general news to let our AI filter it
             }
 
+            // Build the live API URL request
             let url = `https://gnews.io/api/v4/top-headlines?category=${gnewsCategory}&lang=en&max=9&apikey=${API_KEY}`;
 
             try {
@@ -169,18 +199,20 @@
                 
                 if (data.articles && data.articles.length > 0) {
                     let processedArticles = data.articles.map(article => {
-                        // Dynamically predict text weights inside browser using dataset semantic weights rules!
+                        // Scan text for our Good/Bad sentiment keywords
                         article.ai_category = classifyTextWithAI(article.title, article.description || '');
                         return article;
                     });
 
                     let finalDisplayList = processedArticles;
-                    if(category === 'good news' || category === 'bad news') {
+                    
+                    // ONLY filter if the user explicitly clicked Good News or Bad News
+                    if (category === 'good news' || category === 'bad news') {
                         finalDisplayList = processedArticles.filter(art => art.ai_category === category);
                     }
 
-                    // Fallback verification mapping
-                    if(finalDisplayList.length === 0) {
+                    // If the live filter results are empty, fall back to matching sample data
+                    if (finalDisplayList.length === 0) {
                         loadFallbackData(category);
                     } else {
                         displayNews(finalDisplayList, category);
@@ -189,7 +221,7 @@
                     loadFallbackData(category);
                 }
             } catch (error) {
-                console.warn("API limit or issue encountered. Loading local model arrays layer...");
+                console.warn("API Layer fallback initiated...");
                 loadFallbackData(category);
             }
         }
@@ -252,6 +284,7 @@
                             <a href="${article.url || '#'}" target="_blank" class="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1">
                                 Read More <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </a>
+                            
                         </div>
                     </div>
                 `;
@@ -260,23 +293,30 @@
         }
 
         // Setup clear click triggers mapping tracking
+        // 5. BUTTONS EVENTS SETUP - FIXED FOR ALL CATEGORIES
         document.querySelectorAll('main section button').forEach(button => {
             button.addEventListener('click', (e) => {
+                // Reset all buttons to white background
                 document.querySelectorAll('main section button').forEach(btn => {
                     btn.className = "px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer";
                 });
 
+                // Highlight the clicked button in purple
                 e.target.className = "px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer";
 
-                let category = e.target.innerText.toLowerCase();
-                
-                if (category.includes('sports')) category = 'sports';
-                if (category.includes('good news')) category = 'good news';
-                if (category.includes('political')) category = 'politics'; 
-                if (category.includes('bad news')) category = 'bad news';
-                if (category.includes('economy')) category = 'business';   
-                if (category.includes('all news')) category = 'general';
+                // Read the text on the button to find the category
+                let btnText = e.target.innerText.toLowerCase();
+                let category = 'general'; // Default fallback
 
+                // Perfect mapping matching your UI buttons exactly
+                if (btnText.includes('sports')) category = 'sports';
+                else if (btnText.includes('political') || btnText.includes('politics')) category = 'politics'; 
+                else if (btnText.includes('economy') || btnText.includes('business')) category = 'business';   
+                else if (btnText.includes('good news')) category = 'good news';
+                else if (btnText.includes('bad news')) category = 'bad news';
+                else if (btnText.includes('all news') || btnText.includes('global')) category = 'general'; // Loads EVERYTHING
+
+                console.log("User chose category:", category);
                 fetchNews(category);
             });
         });
