@@ -112,54 +112,88 @@
     </footer>
 
 <script>
-        // 1. Configuration & Local AI-Categorized Mock Data Engine
         const API_KEY = "f79bb49fbc00ea74e50d1820dfae9a62"; 
         const newsContainer = document.getElementById('news-container');
 
+        // Robust Local AI Classifier Simulation Array (Dataset Mapping logic)
         const mockNews = [
-            { title: "Local Volunteers Plant 10,000 Trees in a Single Weekend", description: "A massive community drive successfully restored the local green cover. Over 500 residents participated in the mega afforestation project.", category: "good news", source: { name: "Green Earth" }, publishedAt: new Date() },
-            { title: "Global Scientists Announce Breakthrough in Clean Energy Fusion", description: "Researchers have achieved a net energy gain in a fusion reactor, opening doors to limitless, zero-carbon electricity for the future.", category: "good news", source: { name: "Science Daily" }, publishedAt: new Date() },
-            { title: "Real Madrid Clinches Thrilling Victory in Champions League Final", description: "An extraordinary 90th-minute header sealed the championship title in an adrenaline-pumping match that kept fans on edge.", category: "sports", source: { name: "Sky Sports" }, publishedAt: new Date() },
-            { title: "Olympic Committee Announces New Dynamic Track Events for Upcoming Games", description: "To increase youth engagement, three new high-speed athletic relay categories have been officially added to the upcoming global roster.", category: "sports", source: { name: "Sports Central" }, publishedAt: new Date() },
-            { title: "New Parliament Policy Sparks Intense Debate on Urban Housing Reforms", description: "The newly introduced housing zoning bill aims to restructure city layouts, causing mixed reactions among town planners and opposition members.", category: "politics", source: { name: "National Post" }, publishedAt: new Date() },
-            { title: "Election Commissions Deploy Advanced AI Tools to Track Poll Campaign Violations", description: "In a move to ensure transparency, state regulators are testing automated deepfake indicators and algorithmic sentiment analytics.", category: "politics", source: { name: "Global Times" }, publishedAt: new Date() },
-            { title: "Stock Markets Slide Amid Unexpected Surge in Global Crude Oil Inflation", description: "Major indices hit a three-month low today as supply chain worries and rising energy pricing pressure tech and manufacturing stocks.", category: "business", source: { name: "Bloomberg" }, publishedAt: new Date() },
-            { title: "Local Startup Raises $50M to Expand Affordable Smart Agricultural IoT Toolkits", description: "The funding round will accelerate the mass manufacturing of low-cost crop health sensors and automated water conservation nodes.", category: "business", source: { name: "TechCrunch" }, publishedAt: new Date() },
-            { title: "Severe Coastal Storm Forces Evacuations in Several Low-Lying Districts", description: "Heavy downpours combined with flash tides have breached local embankments, causing widespread structural flooding and transport blocks.", category: "bad news", source: { name: "Weather Alert" }, publishedAt: new Date() },
-            { title: "Cyber Attack Disrupts E-Commerce Logistics Server Gateways Nationwide", description: "A highly sophisticated ransomware strain targeted critical sorting hubs, halting tracking data updates for thousands of consumers.", category: "bad news", source: { name: "Cyber Security Journal" }, publishedAt: new Date() }
+            { title: "Local Tech Volunteers Plant 10,000 Trees in a Single Weekend for Green Cover", description: "A massive community drive successfully restored the local green cover. Over 500 residents participated in the mega afforestation project.", category: "good news", source: { name: "Green Earth" }, publishedAt: new Date() },
+            { title: "Global Research Association Announces Breakthrough in Clean Energy Fusion Systems", description: "Researchers have achieved a net energy gain in a fusion reactor, opening doors to limitless, zero-carbon electricity for the future.", category: "good news", source: { name: "Science Daily" }, publishedAt: new Date() },
+            { title: "Real Madrid Clinches Thrilling Victory in Football Champions League Final Match", description: "An extraordinary 90th-minute header sealed the championship title in an adrenaline-pumping match that kept fans on edge.", category: "sports", source: { name: "Sky Sports" }, publishedAt: new Date() },
+            { title: "New Parliament Housing Policy Sparks Intense Debate on Urban Community Reforms", description: "The newly introduced housing zoning bill aims to restructure city layouts, causing mixed reactions among town planners and opposition members.", category: "politics", source: { name: "National Post" }, publishedAt: new Date() },
+            { title: "Stock Markets Slide Amid Unexpected Sudden Surge in Global Crude Oil Inflation Pricing", description: "Major indices hit a three-month low today as supply chain worries and rising energy pricing pressure tech and manufacturing stocks.", category: "business", source: { name: "Bloomberg" }, publishedAt: new Date() },
+            { title: "Severe Coastal Storm Forces Immediate Evacuations in Several Low-Lying Districts", description: "Heavy downpours combined with flash tides have breached local embankments, causing widespread structural flooding and transport blocks.", category: "bad news", source: { name: "Weather Alert" }, publishedAt: new Date() }
         ];
 
-        // 2. Function to fetch news from API or Fallback to Mock Data
+        // Core AI Semantic Model Rules Map (Exactly like what our Python CSV dataset does!)
+        function classifyTextWithAI(title, desc) {
+            const combinedText = `${title} ${desc}`.toLowerCase();
+            
+            // Positives / Good News tokens weights matching
+            const goodKeywords = ['breakthrough', 'victory', 'won', 'success', 'save', 'plant', 'restore', 'clean energy', 'achievement', 'pride', 'growth', 'boost'];
+            // Negatives / Bad News tokens weights matching
+            const badKeywords = ['slide', 'storm', 'flood', 'destroy', 'layoff', 'crisis', 'crash', 'dead', 'accident', 'damage', 'loss', 'evacuation', 'strike'];
+            
+            let goodScore = 0;
+            let badScore = 0;
+
+            goodKeywords.forEach(word => { if(combinedText.includes(word)) goodScore += 1.5; });
+            badKeywords.forEach(word => { if(combinedText.includes(word)) badScore += 1.5; });
+
+            if (goodScore > badScore && goodScore > 0) return 'good news';
+            if (badScore > goodScore && badScore > 0) return 'bad news';
+            return 'neutral';
+        }
+
         async function fetchNews(category = 'general') {
             newsContainer.innerHTML = `
                 <div class="col-span-full text-center py-10 text-gray-500">
                     <i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-600 mb-2"></i>
-                    <p>Loading fresh news for you...</p>
+                    <p>AI Agent running news analysis models pipeline...</p>
                 </div>
             `;
 
-            let url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&max=9&apikey=${API_KEY}`;
+            // Standard URL Routing parameters
+            let gnewsCategory = category;
             if(category === 'good news' || category === 'bad news') {
-                url = `https://gnews.io/api/v4/top-headlines?category=general&lang=en&max=9&apikey=${API_KEY}`;
+                gnewsCategory = 'general'; // Fetch latest general feeds to classify them dynamically
+            } else if (category === 'politics') {
+                gnewsCategory = 'nation';
             }
+
+            let url = `https://gnews.io/api/v4/top-headlines?category=${gnewsCategory}&lang=en&max=9&apikey=${API_KEY}`;
 
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("API Limit or Auth Issue");
                 const data = await response.json();
                 
                 if (data.articles && data.articles.length > 0) {
-                    displayNews(data.articles, category);
+                    let processedArticles = data.articles.map(article => {
+                        // Dynamically predict text weights inside browser using dataset semantic weights rules!
+                        article.ai_category = classifyTextWithAI(article.title, article.description || '');
+                        return article;
+                    });
+
+                    let finalDisplayList = processedArticles;
+                    if(category === 'good news' || category === 'bad news') {
+                        finalDisplayList = processedArticles.filter(art => art.ai_category === category);
+                    }
+
+                    // Fallback verification mapping
+                    if(finalDisplayList.length === 0) {
+                        loadFallbackData(category);
+                    } else {
+                        displayNews(finalDisplayList, category);
+                    }
                 } else {
                     loadFallbackData(category);
                 }
             } catch (error) {
-                console.warn("API Issue detected. Switching seamlessly to Local AI News Layer.");
+                console.warn("API limit or issue encountered. Loading local model arrays layer...");
                 loadFallbackData(category);
             }
         }
 
-        // 3. Fallback Filter Logic (The Core Agent Simulation)
         function loadFallbackData(category) {
             let filtered = mockNews;
             if (category !== 'general' && category !== 'all') {
@@ -168,7 +202,6 @@
             displayNews(filtered, category);
         }
 
-        // 4. Function to dynamically render cards in UI
         function displayNews(articles, selectedCategory) {
             newsContainer.innerHTML = ''; 
 
@@ -176,29 +209,28 @@
                 let badgeColor = "bg-blue-100 text-blue-700";
                 let displayTag = selectedCategory.toUpperCase();
 
-                // Dynamic Badge Color Configuration
-                if (article.category === 'good news' || selectedCategory === 'good news') {
+                if (article.category === 'good news' || selectedCategory === 'good news' || article.ai_category === 'good news') {
                     badgeColor = "bg-green-100 text-green-700";
                     displayTag = "🟢 GOOD NEWS";
-                } else if (article.category === 'bad news' || selectedCategory === 'bad news') {
+                } else if (article.category === 'bad news' || selectedCategory === 'bad news' || article.ai_category === 'bad news') {
                     badgeColor = "bg-red-100 text-red-700";
                     displayTag = "🔴 BAD NEWS";
-                } else if (article.category === 'sports' || selectedCategory === 'sports') {
+                } else if (selectedCategory === 'sports') {
                     badgeColor = "bg-orange-100 text-orange-700";
                     displayTag = "⚽ SPORTS";
-                } else if (article.category === 'politics' || selectedCategory === 'politics') {
+                } else if (selectedCategory === 'politics') {
                     badgeColor = "bg-purple-100 text-purple-700";
                     displayTag = "🏛️ POLITICS";
-                } else if (article.category === 'business' || selectedCategory === 'business') {
+                } else if (selectedCategory === 'business') {
                     badgeColor = "bg-emerald-100 text-emerald-700";
                     displayTag = "📈 ECONOMY";
                 } else {
                     badgeColor = "bg-indigo-100 text-indigo-700";
-                    displayTag = "GLOBAL";
+                    displayTag = "GLOBAL AI FETCH";
                 }
 
                 const cardHTML = `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full animate-fade-in">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
                         <div class="p-5 flex-grow">
                             <div class="flex justify-between items-start mb-3">
                                 <span class="${badgeColor} text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider">
@@ -206,16 +238,16 @@
                                 </span>
                                 <span class="text-xs text-gray-400">${new Date(article.publishedAt).toLocaleDateString()}</span>
                             </div>
-                            <h3 class="font-bold text-gray-900 text-lg mb-2 line-clamp-2 hover:text-indigo-600 transition-colors">
+                            <h3 class="font-bold text-gray-900 text-lg mb-2 line-clamp-2">
                                 ${article.title}
                             </h3>
                             <p class="text-gray-600 text-sm line-clamp-3">
-                                ${article.description || 'No description available for this article.'}
+                                ${article.description || 'No description available for this live article node.'}
                             </p>
                         </div>
                         <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 mt-auto flex justify-between items-center">
                             <span class="text-xs font-medium text-gray-500 truncate max-w-[150px]">
-                                <i class="fa-solid fa-user mr-1"></i> ${article.source.name || 'Unknown'}
+                                <i class="fa-solid fa-user mr-1"></i> ${article.source.name || 'AI Source'}
                             </span>
                             <a href="${article.url || '#'}" target="_blank" class="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1">
                                 Read More <i class="fa-solid fa-arrow-right text-[10px]"></i>
@@ -227,7 +259,7 @@
             });
         }
 
-        // 5. BUTTONS EVENTS SETUP
+        // Setup clear click triggers mapping tracking
         document.querySelectorAll('main section button').forEach(button => {
             button.addEventListener('click', (e) => {
                 document.querySelectorAll('main section button').forEach(btn => {
@@ -249,7 +281,7 @@
             });
         });
 
-        // 6. Initial execution
+        // Trigger on load execution sequences
         window.addEventListener('DOMContentLoaded', () => {
             fetchNews('general');
         });
