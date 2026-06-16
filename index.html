@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI News Agent - Smart News Dashboard</title>
+    <title>News Sort - AI News Agent </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -21,7 +21,7 @@
                 </div>
             </div>
             <span class="bg-indigo-700/50 border border-indigo-500/30 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <i class="fa-solid fa-robot text-indigo-300"></i> Powered by Client-Side AI
+                <i class="fa-solid fa-robot text-indigo-300"></i> Voice-Enabled AI
             </span>
         </div>
     </header>
@@ -35,7 +35,7 @@
                     <i class="fa-solid fa-map-location-dot text-indigo-500"></i> Step 1: Choose Location or Type Custom Place
                 </h4>
                 <div class="flex flex-wrap gap-2 mb-4" id="location-filters">
-                    <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer" data-loc="world">🌍 Global / World</button>
+                    <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-loc="world">🌍 Global / World</button>
                     <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-loc="india">🇮🇳 India National</button>
                     <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-loc="tamilnadu">🗺️ Tamil Nadu</button>
                 </div>
@@ -61,7 +61,7 @@
                     <i class="fa-solid fa-filter text-indigo-500"></i> Step 2: Choose News Sentiment / Category
                 </h4>
                 <div class="flex flex-wrap gap-2" id="content-filters">
-                    <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer" data-type="general">📰 All News</button>
+                    <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="general">📰 All News</button>
                     <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="good news">🟢 Good News</button>
                     <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="bad news">🔴 Bad News</button>
                     <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="sports">⚽ Sports</button>
@@ -78,17 +78,39 @@
         const API_KEY = "f79bb49fbc00ea74e50d1820dfae9a62"; 
         const newsContainer = document.getElementById('news-container');
 
-        let currentSelectedLocation = 'world';
+        // Initially set to empty so the app KNOWS no location is chosen yet
+        let currentSelectedLocation = '';
         let currentSelectedType = 'general';
         let isCustomSearchActive = false;
         let customLocationQuery = '';
 
-        // Dataset Semantic Keywords Filter Engine
+        // Native Text-to-Speech Voice Assistant Function
+        function speakAlert(textMessage) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any overlapping voices
+                const utterance = new SpeechSynthesisUtterance(textMessage);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Show prompt telling user to pick location
+        function displayInitialPrompt() {
+            newsContainer.innerHTML = `
+                <div class="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200 p-8">
+                    <i class="fa-solid fa-map-pin text-4xl text-indigo-500 mb-3 animate-bounce"></i>
+                    <h3 class="text-lg font-bold text-slate-700">No Location Selected</h3>
+                    <p class="text-sm text-slate-500 mt-1">Please select a location from Step 1 or type a custom place to unlock live feeds.</p>
+                </div>
+            `;
+        }
+
         function classifyTextWithAI(title, desc) {
             const combinedText = `${title} ${desc}`.toLowerCase();
-            
-            const goodKeywords = ['breakthrough', 'victory', 'won', 'success', 'save', 'plant', 'restore', 'growth', 'boost', 'launch', 'innovate', 'health', 'support', 'agree', 'pride', 'celebrate', 'excellent'];
-            const badKeywords = ['slide', 'storm', 'flood', 'destroy', 'layoff', 'crisis', 'crash', 'dead', 'accident', 'damage', 'loss', 'evacuation', 'warn', 'drop', 'fall', 'hurt', 'attack', 'protest', 'fire'];
+            const goodKeywords = ['breakthrough', 'victory', 'won', 'success', 'save', 'plant', 'restore', 'growth', 'boost', 'launch', 'innovate', 'health', 'support', 'agree', 'pride', 'celebrate'];
+            const badKeywords = ['slide', 'storm', 'flood', 'destroy', 'layoff', 'crisis', 'crash', 'dead', 'accident', 'damage', 'loss', 'evacuation', 'warn', 'drop', 'fall', 'hurt', 'attack', 'protest'];
             
             let goodScore = 0; let badScore = 0;
             goodKeywords.forEach(word => { if(combinedText.includes(word)) goodScore += 1; });
@@ -99,16 +121,21 @@
             return 'neutral';
         }
 
-        // Unified Network Data Request Loop
         async function runUnifiedNewsPipeline() {
             if (!newsContainer) return;
+
+            // VOICE CHECK GUARD: If no location is set, stop loading and speak out loud!
+            if (!currentSelectedLocation && !isCustomSearchActive) {
+                displayInitialPrompt();
+                speakAlert("Please choose a location or type a custom place first.");
+                return;
+            }
             
             let logLocation = isCustomSearchActive ? customLocationQuery : currentSelectedLocation;
             newsContainer.innerHTML = `
                 <div class="col-span-full text-center py-12 text-slate-400">
                     <i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-600 mb-3"></i>
-                    <p class="text-sm font-medium text-slate-600">AI Engine evaluating matrices for Location: <span class="text-indigo-600 font-bold">${logLocation.toUpperCase()}</span></p>
-                    <p class="text-xs text-slate-400 mt-1">Filtering data stream for matching entries...</p>
+                    <p class="text-sm font-medium text-slate-600">AI Engine filtering content for: <span class="text-indigo-600 font-bold">${logLocation.toUpperCase()}</span></p>
                 </div>
             `;
 
@@ -150,40 +177,32 @@
             }
         }
 
-        // Robust Dataset Backup Array: Generates context dynamically matching exact clicks
         function loadSafeBackupData() {
             let targetPlace = isCustomSearchActive ? customLocationQuery : currentSelectedLocation;
-            
             const localSampleDataset = [
                 { title: `New Environmental Development Project Implemented in ${targetPlace}`, description: "Local authorities confirmed milestones achieved in green energy expansion and plantation coverage fields this week.", ai_category: "good news", source: { name: "Regional Network Bureau" }, publishedAt: new Date(), url: "https://www.india.gov.in" },
                 { title: `Unexpected Heavy Storm Causes Structural Flash Flood Blocks in ${targetPlace} Regions`, description: "Severe sudden rainfall parameters caused transport disruption and road damage across main sectors yesterday.", ai_category: "bad news", source: { name: "Weather Disaster Alerts" }, publishedAt: new Date(), url: "https://www.reuters.com" },
-                { title: `${targetPlace} Regional Athletics Association Hosts Championship Matches`, description: "Sports teams completed active scheduling preparation to win upcoming tournament trophies starting tonight.", ai_category: "sports", source: { name: "Sports Tracker Live" }, publishedAt: new Date(), url: "https://www.olympics.com" },
-                { title: `Administrative Officers Arrange Public Welfare Briefing Session in ${targetPlace}`, description: "Elected council management scheduled discussions regarding development budget policy improvements next cycle.", ai_category: "politics", source: { name: "National Press Central" }, publishedAt: new Date(), url: "https://www.reuters.com" }
+                { title: `${targetPlace} Regional Athletics Association Hosts Championship Matches`, description: "Sports teams completed active scheduling preparation to win upcoming tournament trophies starting tonight.", ai_category: "sports", source: { name: "Sports Tracker Live" }, publishedAt: new Date(), url: "https://www.olympics.com" }
             ];
 
             let filtered = localSampleDataset;
             if (currentSelectedType !== 'general') {
                 filtered = localSampleDataset.filter(item => item.ai_category === currentSelectedType);
             }
-            
             displayNews(filtered.length === 0 ? localSampleDataset : filtered, currentSelectedType);
         }
 
-        // Render UI Cards Interface Node
         function displayNews(articles, selectedCategory) {
             newsContainer.innerHTML = ''; 
             articles.forEach(article => {
                 let badgeColor = "bg-indigo-100 text-indigo-700";
                 let displayTag = selectedCategory.toUpperCase();
-
-                // Read matching context parameters
                 let checkTag = article.ai_category || selectedCategory;
 
                 if (checkTag === 'good news') { badgeColor = "bg-green-100 text-green-700"; displayTag = "🟢 GOOD NEWS"; }
                 else if (checkTag === 'bad news') { badgeColor = "bg-red-100 text-red-700"; displayTag = "🔴 BAD NEWS"; }
                 else if (checkTag === 'sports') { badgeColor = "bg-orange-100 text-orange-700"; displayTag = "⚽ SPORTS"; }
                 else if (checkTag === 'politics') { badgeColor = "bg-purple-100 text-purple-700"; displayTag = "🏛️ POLITICS"; }
-                else { badgeColor = "bg-blue-100 text-blue-700"; displayTag = "🌐 LIVE ACCORD"; }
 
                 newsContainer.innerHTML += `
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all flex flex-col h-full">
@@ -204,25 +223,52 @@
             });
         }
 
-        // --- EXPLICIT COMPONENT CONTROLLERS ---
+        // --- INTERACTIVE CONTROLLERS ---
+      // --- UPDATED INTERACTIVE CONTROLLERS WITH AUTO-RESET LOGIC ---
+        
+        // Helper function to force-reset category button highlight to "All News"
+       // --- UPDATED INTERACTIVE CONTROLLERS WITH AUTO-RESET LOGIC ---
+        
+        // Helper function to force-reset category button highlight to "All News"
+        function resetCategoryToAllNews() {
+            currentSelectedType = 'general'; // Reset variable state
+            document.querySelectorAll('#content-filters .content-btn').forEach(b => {
+                b.className = "content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer";
+            });
+            // Find the first button (All News) and highlight it purple
+            const allNewsBtn = document.querySelector('#content-filters .content-btn[data-type="general"]');
+            if (allNewsBtn) {
+                allNewsBtn.className = "content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer";
+            }
+        }
+
+        // 1. Handle Preset Location Clicks
         document.querySelectorAll('#location-filters .location-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('#location-filters .location-btn').forEach(b => b.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
                 e.target.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer";
+                
                 document.getElementById('custom-location-input').value = '';
                 isCustomSearchActive = false;
                 currentSelectedLocation = e.target.getAttribute('data-loc');
+                
+                resetCategoryToAllNews(); // <-- AUTOMATICALLY RESET STRATEGY TO ALL NEWS BUTTON
                 runUnifiedNewsPipeline();
             });
         });
 
+        // 2. Handle Custom Location Search Bar Clicks
         document.getElementById('custom-location-search-btn').addEventListener('click', () => {
             const inputVal = document.getElementById('custom-location-input').value.trim();
             if (inputVal !== '') {
                 document.querySelectorAll('#location-filters .location-btn').forEach(b => b.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
                 isCustomSearchActive = true;
                 customLocationQuery = inputVal;
+                
+                resetCategoryToAllNews(); // <-- AUTOMATICALLY RESET STRATEGY TO ALL NEWS BUTTON
                 runUnifiedNewsPipeline();
+            } else {
+                speakAlert("Please type a location name inside the search input block.");
             }
         });
 
@@ -230,6 +276,7 @@
             if (e.key === 'Enter') document.getElementById('custom-location-search-btn').click();
         });
 
+        // 3. Handle News Type Clicks (Kept normal)
         document.querySelectorAll('#content-filters .content-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('#content-filters .content-btn').forEach(b => b.className = "content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
@@ -239,33 +286,46 @@
             });
         });
 
-        // Browser Native GPS Geolocation Core Handler
+        // 4. Handle GPS Auto-Detect Button Clicks
         document.getElementById('gps-location-btn').addEventListener('click', () => {
             const gpsBtn = document.getElementById('gps-location-btn');
-            if (!navigator.geolocation) { alert("Geolocation tracking not supported."); return; }
-            
-            gpsBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading...`;
+            if (!navigator.geolocation) { alert("GPS not supported."); return; }
+            gpsBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Geocoding...`;
             navigator.geolocation.getCurrentPosition(async (position) => {
                 try {
                     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`);
                     const data = await response.json();
                     let place = data.address.city || data.address.town || data.address.state || "Chennai";
-                    
                     document.getElementById('custom-location-input').value = place;
                     document.querySelectorAll('#location-filters .location-btn').forEach(b => b.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
                     
                     isCustomSearchActive = true;
                     customLocationQuery = place;
+                    
+                    resetCategoryToAllNews(); // <-- AUTOMATICALLY RESET STRATEGY TO ALL NEWS BUTTON
                     runUnifiedNewsPipeline();
-                } catch (err) { alert("Error reading geolocation strings."); }
+                } catch (err) { speakAlert("Error reading GPS telemetry data."); }
                 finally { gpsBtn.innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> Auto-Detect`; }
             }, () => { 
-                alert("Location access permission blocked."); 
+                speakAlert("Location permissions denied.");
                 gpsBtn.innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> Auto-Detect`;
             });
         });
 
-        window.addEventListener('DOMContentLoaded', () => { runUnifiedNewsPipeline(); });
-    </script>
+        // --- DYNAMIC STARTUP LOADING LOGIC ---
+        window.addEventListener('DOMContentLoaded', () => { 
+            displayInitialPrompt(); 
+            
+            // Modern browsers block automatic voice speech until a user clicks something on the page first.
+            // To bypass this cleanly, we voice prompt them the absolute second they make their first touch!
+            window.addEventListener('click', function startVoicePrompt() {
+                if (!currentSelectedLocation && !isCustomSearchActive) {
+                    speakAlert("Welcome to AI News Agent. Please choose a location or type a custom place first.");
+                }
+                // Remove listener so it doesn't repeat on every single background click
+                window.removeEventListener('click', startVoicePrompt);
+            });
+        });
+    </script>  
 </body>
 </html>
