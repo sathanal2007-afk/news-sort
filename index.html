@@ -22,6 +22,38 @@
                 <i class="fa-solid fa-robot mr-1.5"></i> Powered by AI
             </p>
         </div>
+        <div class="flex flex-col gap-4 mb-8">
+    <div>
+    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1">
+        <i class="fa-solid fa-map-location-dot"></i> Step 1: Choose Location or Type Custom Place
+    </h4>
+    <div class="flex flex-wrap gap-2 mb-3" id="location-filters">
+        <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer" data-loc="world">🌍 Global / World</button>
+        <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-loc="india">🇮🇳 India National</button>
+        <button class="location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-loc="tamilnadu">🗺️ Tamil Nadu</button>
+    </div>
+    
+    <div class="flex gap-2 max-w-md">
+        <input type="text" id="custom-location-input" placeholder="Type any place (e.g., Chennai, Coimbatore, Salem)..." class="w-full px-4 py-2 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all">
+        <button id="custom-location-search-btn" class="px-5 py-2 text-sm font-semibold bg-indigo-600 text-white border-2 border-indigo-600 rounded-xl shadow-sm hover:bg-indigo-700 transition-all cursor-pointer flex items-center gap-1">
+            <i class="fa-solid fa-magnifying-glass"></i> Search
+        </button>
+    </div>
+</div>
+
+    <div>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1">
+            <i class="fa-solid fa-filter"></i> Step 2: Choose News Type
+        </h4>
+        <div class="flex flex-wrap gap-2" id="content-filters">
+            <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer" data-type="general">📰 All News</button>
+            <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="good news">🟢 Good News</button>
+            <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="bad news">🔴 Bad News</button>
+            <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="sports">⚽ Sports</button>
+            <button class="content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer" data-type="politics">🏛️ Politics</button>
+        </div>
+    </div>
+</div>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
@@ -115,215 +147,121 @@
         const API_KEY = "f79bb49fbc00ea74e50d1820dfae9a62"; 
         const newsContainer = document.getElementById('news-container');
 
-        // Robust Local AI Classifier Simulation Array (Dataset Mapping logic)
-        const mockNews = [
-    { 
-        title: "Local Tech Volunteers Plant 10,000 Trees...", 
-        description: "A massive community drive...", 
-        category: "good news", 
-        source: { name: "Green Earth" }, 
-        publishedAt: new Date(),
-        url: "https://www.nature.com" // <-- Add a real URL here!
-    },
-    { 
-        title: "Global Research Association Announces Breakthrough...", 
-        description: "Researchers have achieved...", 
-        category: "good news", 
-        source: { name: "Science Daily" }, 
-        publishedAt: new Date(),
-        url: "https://www.sciencedaily.com" // <-- Add a real URL here!
-    }
-    // ... do the same for the rest of your sample news cards
-];
+        // Global Variables to remember what the user currently has active
+        // Global Variables to remember selections
+        let currentSelectedLocation = 'world';
+        let currentSelectedType = 'general';
+        let isCustomSearchActive = false;
+        let customLocationQuery = '';
 
-        // Core AI Semantic Model Rules Map (Exactly like what our Python CSV dataset does!)
-// Core AI Semantic Model Rules Map - EXPANDED KEYWORDS FOR LIVE NEWS
-        function classifyTextWithAI(title, desc) {
-            const combinedText = `${title} ${desc}`.toLowerCase();
-            
-            // Added more common words so it catches real-time live news easily!
-            const goodKeywords = [
-                'breakthrough', 'victory', 'won', 'success', 'save', 'plant', 'restore', 
-                'clean energy', 'achievement', 'pride', 'growth', 'boost', 'launch', 
-                'innovate', 'science', 'health', 'cure', 'discover', 'green', 'benefit', 
-                'help', 'support', 'sign', 'agree', 'partnership', 'future', 'smart'
-            ];
-            
-            const badKeywords = [
-                'slide', 'storm', 'flood', 'destroy', 'layoff', 'crisis', 'crash', 
-                'dead', 'accident', 'damage', 'loss', 'evacuation', 'strike', 'warn', 
-                'drop', 'fall', 'hurt', 'court', 'sue', 'fire', 'protest', 'delay', 
-                'decline', 'risk', 'fail', 'accident', 'issue', 'attack', 'banned'
-            ];
-            
-            let goodScore = 0;
-            let badScore = 0;
-
-            // Checking if the live article contains any of our words
-            goodKeywords.forEach(word => { if(combinedText.includes(word)) goodScore += 1.0; });
-            badKeywords.forEach(word => { if(combinedText.includes(word)) badScore += 1.0; });
-
-            if (goodScore > badScore && goodScore > 0) return 'good news';
-            if (badScore > goodScore && badScore > 0) return 'bad news';
-            return 'neutral';
-        }
-
-       // 2. FIXED FUNCTION: Fetches and displays the exact category you choose
-        async function fetchNews(category = 'general') {
+        // Master Fetch Engine that merges Location choices with Content Type choices
+        async function runUnifiedNewsPipeline() {
+            let logLocation = isCustomSearchActive ? customLocationQuery : currentSelectedLocation;
             newsContainer.innerHTML = `
                 <div class="col-span-full text-center py-10 text-gray-500">
                     <i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-600 mb-2"></i>
-                    <p>AI Agent running news analysis models pipeline...</p>
+                    <p>AI Engine filtering news context for Location: <b>${logLocation.toUpperCase()}</b> | Type: <b>${currentSelectedType.toUpperCase()}</b>...</p>
                 </div>
             `;
 
-            // Set up the correct GNews API category based on your click
-            let gnewsCategory = 'general'; 
+            // Build API URL based on standard or custom inputs
+            let baseUrl = "https://gnews.io/api/v4/top-headlines?lang=en&max=9&apikey=" + API_KEY;
             
-            if (category === 'sports') {
-                gnewsCategory = 'sports';
-            } else if (category === 'politics') {
-                gnewsCategory = 'nation'; // GNews uses 'nation' for politics/national news
-            } else if (category === 'business') {
-                gnewsCategory = 'business'; // For Economy
-            } else if (category === 'good news' || category === 'bad news') {
-                gnewsCategory = 'general'; // Fetch general news to let our AI filter it
+            if (isCustomSearchActive) {
+                // If the user typed a custom location, use GNews Search API endpoint
+                baseUrl = `https://gnews.io/api/v4/search?q="${customLocationQuery}"&lang=en&max=9&apikey=${API_KEY}`;
+            } else {
+                // Standard fixed button mappings
+                if (currentSelectedLocation === 'india') {
+                    baseUrl += "&country=in";
+                } else if (currentSelectedLocation === 'tamilnadu') {
+                    baseUrl = `https://gnews.io/api/v4/search?q="tamil nadu"&lang=en&max=9&apikey=${API_KEY}`;
+                }
             }
 
-            // Build the live API URL request
-            let url = `https://gnews.io/api/v4/top-headlines?category=${gnewsCategory}&lang=en&max=9&apikey=${API_KEY}`;
+            // Append Category routing parameters for non-sentiment filters
+            if (currentSelectedType === 'sports' && !isCustomSearchActive) {
+                baseUrl += "&category=sports";
+            } else if (currentSelectedType === 'politics' && !isCustomSearchActive) {
+                baseUrl += "&category=nation";
+            }
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(baseUrl);
                 const data = await response.json();
                 
                 if (data.articles && data.articles.length > 0) {
-                    let processedArticles = data.articles.map(article => {
-                        // Scan text for our Good/Bad sentiment keywords
+                    let processed = data.articles.map(article => {
                         article.ai_category = classifyTextWithAI(article.title, article.description || '');
                         return article;
                     });
 
-                    let finalDisplayList = processedArticles;
+                    let finalDisplayList = processed;
                     
-                    // ONLY filter if the user explicitly clicked Good News or Bad News
-                    if (category === 'good news' || category === 'bad news') {
-                        finalDisplayList = processedArticles.filter(art => art.ai_category === category);
+                    // If filtering for Good/Bad news or if a custom text keyword search is active
+                    if (currentSelectedType === 'good news' || currentSelectedType === 'bad news') {
+                        finalDisplayList = processed.filter(art => art.ai_category === currentSelectedType);
+                    } else if (isCustomSearchActive && (currentSelectedType === 'sports' || currentSelectedType === 'politics')) {
+                        // Manual backup filter for custom keywords matching sports/politics text arrays
+                        finalDisplayList = processed.filter(art => {
+                            const text = `${art.title} ${art.description}`.toLowerCase();
+                            return currentSelectedType === 'sports' ? text.includes('sport') || text.includes('match') || text.includes('win') : text.includes('politics') || text.includes('election') || text.includes('minister');
+                        });
                     }
 
-                    // If the live filter results are empty, fall back to matching sample data
-                    if (finalDisplayList.length === 0) {
-                        loadFallbackData(category);
-                    } else {
-                        displayNews(finalDisplayList, category);
-                    }
-                } else {
-                    loadFallbackData(category);
-                }
-            } catch (error) {
-                console.warn("API Layer fallback initiated...");
-                loadFallbackData(category);
-            }
+                    if(finalDisplayList.length === 0) { displayNoResultsFound(); } 
+                    else { displayNews(finalDisplayList, currentSelectedType); }
+                } else { displayNoResultsFound(); }
+            } catch (error) { displayNoResultsFound(); }
         }
 
-        function loadFallbackData(category) {
-            let filtered = mockNews;
-            if (category !== 'general' && category !== 'all') {
-                filtered = mockNews.filter(article => article.category === category);
-            }
-            displayNews(filtered, category);
-        }
-
-        function displayNews(articles, selectedCategory) {
-            newsContainer.innerHTML = ''; 
-
-            articles.forEach(article => {
-                let badgeColor = "bg-blue-100 text-blue-700";
-                let displayTag = selectedCategory.toUpperCase();
-
-                if (article.category === 'good news' || selectedCategory === 'good news' || article.ai_category === 'good news') {
-                    badgeColor = "bg-green-100 text-green-700";
-                    displayTag = "🟢 GOOD NEWS";
-                } else if (article.category === 'bad news' || selectedCategory === 'bad news' || article.ai_category === 'bad news') {
-                    badgeColor = "bg-red-100 text-red-700";
-                    displayTag = "🔴 BAD NEWS";
-                } else if (selectedCategory === 'sports') {
-                    badgeColor = "bg-orange-100 text-orange-700";
-                    displayTag = "⚽ SPORTS";
-                } else if (selectedCategory === 'politics') {
-                    badgeColor = "bg-purple-100 text-purple-700";
-                    displayTag = "🏛️ POLITICS";
-                } else if (selectedCategory === 'business') {
-                    badgeColor = "bg-emerald-100 text-emerald-700";
-                    displayTag = "📈 ECONOMY";
-                } else {
-                    badgeColor = "bg-indigo-100 text-indigo-700";
-                    displayTag = "GLOBAL AI FETCH";
-                }
-
-                const cardHTML = `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
-                        <div class="p-5 flex-grow">
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="${badgeColor} text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider">
-                                    ${displayTag}
-                                </span>
-                                <span class="text-xs text-gray-400">${new Date(article.publishedAt).toLocaleDateString()}</span>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-lg mb-2 line-clamp-2">
-                                ${article.title}
-                            </h3>
-                            <p class="text-gray-600 text-sm line-clamp-3">
-                                ${article.description || 'No description available for this live article node.'}
-                            </p>
-                        </div>
-                        <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 mt-auto flex justify-between items-center">
-                            <span class="text-xs font-medium text-gray-500 truncate max-w-[150px]">
-                                <i class="fa-solid fa-user mr-1"></i> ${article.source.name || 'AI Source'}
-                            </span>
-                            <a href="${article.url || '#'}" target="_blank" class="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1">
-                                Read More <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                            </a>
-                            
-                        </div>
-                    </div>
-                `;
-                newsContainer.innerHTML += cardHTML;
-            });
-        }
-
-        // Setup clear click triggers mapping tracking
-        // 5. BUTTONS EVENTS SETUP - FIXED FOR ALL CATEGORIES
-        document.querySelectorAll('main section button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                // Reset all buttons to white background
-                document.querySelectorAll('main section button').forEach(btn => {
-                    btn.className = "px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer";
-                });
-
-                // Highlight the clicked button in purple
-                e.target.className = "px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer";
-
-                // Read the text on the button to find the category
-                let btnText = e.target.innerText.toLowerCase();
-                let category = 'general'; // Default fallback
-
-                // Perfect mapping matching your UI buttons exactly
-                if (btnText.includes('sports')) category = 'sports';
-                else if (btnText.includes('political') || btnText.includes('politics')) category = 'politics'; 
-                else if (btnText.includes('economy') || btnText.includes('business')) category = 'business';   
-                else if (btnText.includes('good news')) category = 'good news';
-                else if (btnText.includes('bad news')) category = 'bad news';
-                else if (btnText.includes('all news') || btnText.includes('global')) category = 'general'; // Loads EVERYTHING
-
-                console.log("User chose category:", category);
-                fetchNews(category);
+        // --- BUTTONS EVENTS SETUP ---
+        // Handle standard preset location button clicks
+        document.querySelectorAll('.location-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.location-btn').forEach(b => b.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
+                e.target.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer";
+                
+                // Reset custom text input field values
+                document.getElementById('custom-location-input').value = '';
+                isCustomSearchActive = false;
+                
+                currentSelectedLocation = e.target.getAttribute('data-loc');
+                runUnifiedNewsPipeline();
             });
         });
 
-        // Trigger on load execution sequences
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchNews('general');
+        // NEW: Handle Custom Location Search Field Click Interaction
+        document.getElementById('custom-location-search-btn').addEventListener('click', () => {
+            const inputVal = document.getElementById('custom-location-input').value.trim();
+            if (inputVal !== '') {
+                // De-highlight standard preset button elements
+                document.querySelectorAll('.location-btn').forEach(b => b.className = "location-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
+                
+                isCustomSearchActive = true;
+                customLocationQuery = inputVal;
+                runUnifiedNewsPipeline();
+            }
         });
+
+        // Allow pressing 'Enter' key inside input field to trigger the search
+        document.getElementById('custom-location-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('custom-location-search-btn').click();
+            }
+        });
+
+        // Handle content type classification button events
+        document.querySelectorAll('.content-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.content-btn').forEach(b => b.className = "content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-gray-200 bg-white text-gray-700 hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all cursor-pointer");
+                e.target.className = "content-btn px-4 py-2 rounded-xl text-xs font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition-all cursor-pointer";
+                currentSelectedType = e.target.getAttribute('data-type');
+                runUnifiedNewsPipeline();
+            });
+        });
+
+        // Trigger on load execution
+        window.addEventListener('DOMContentLoaded', () => { runUnifiedNewsPipeline(); });
     </script></body>
 </html>
